@@ -23,6 +23,11 @@
       "nome": "Fábio Cardoso",
       "face_id": "hash_face_fabio",
       "pin": "5678"
+    },
+    "Bob": {
+      "nome": "Bob Pinto Cardoso",
+      "face_id": "hash_face_bob",
+      "pin": "1239"
     }
   }
 }

@@ -13,8 +13,8 @@
       "status": "falha"
     },
     "acesso3": {
-      "usuario": "F\u00c3\u00a1bio Cardoso",
-      "timestamp": "2025-04-17 17:05:29",
+      "usuario": "Bob Pinto Cardoso",
+      "timestamp": "2025-04-17 17:28:28",
       "metodo": "PIN",
       "status": "autenticado"
     }
@@ -29,6 +29,11 @@
       "nome": "F\u00c3\u00a1bio Cardoso",
       "face_id": "hash_face_fabio",
       "pin": "5678"
+    },
+    "Bob": {
+      "nome": "Bob Pinto Cardoso",
+      "face_id": "hash_face_bob",
+      "pin": "1239"
     }
   }
 }

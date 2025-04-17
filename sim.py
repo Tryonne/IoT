@@ -9,7 +9,7 @@ from PIL import Image
 # --- Configurações ---
 
 # URL do Firebase Realtime Database (ajusta para o teu projeto)
-FIREBASE_ACESSOS_URL = "https://console.firebase.google.com/u/0/project/fechadura-faceid/database/fechadura-faceid-default-rtdb/data/~2F?hl=pt-br"
+FIREBASE_ACESSOS_URL = "https://fechadura-faceid-default-rtdb.europe-west1.firebasedatabase.app"
 
 # Nome do ficheiro local com a "base de dados" mockada
 FICHEIRO_DB = "mock-dados.json"
