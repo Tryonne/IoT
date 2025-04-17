@@ -1,0 +1,34 @@
+{
+  "acessos": {
+    "acesso1": {
+      "usuario": "Diogo Pinto",
+      "timestamp": "2025-04-16 10:23:45",
+      "metodo": "FaceID",
+      "status": "autenticado"
+    },
+    "acesso2": {
+      "usuario": "F\u00c3\u00a1bio Cardoso",
+      "timestamp": "2025-04-16 10:25:02",
+      "metodo": "PIN",
+      "status": "falha"
+    },
+    "acesso3": {
+      "usuario": "F\u00c3\u00a1bio Cardoso",
+      "timestamp": "2025-04-17 17:05:29",
+      "metodo": "PIN",
+      "status": "autenticado"
+    }
+  },
+  "usuarios": {
+    "diogo": {
+      "nome": "Diogo Pinto",
+      "face_id": "hash_face_diogo",
+      "pin": "1234"
+    },
+    "fabio": {
+      "nome": "F\u00c3\u00a1bio Cardoso",
+      "face_id": "hash_face_fabio",
+      "pin": "5678"
+    }
+  }
+}
