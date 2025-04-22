@@ -1,41 +1,25 @@
-# Autenticação por PIN ou QR Code simulada e gravação no Firebase (ou mock JSON)
-
 import json
 from datetime import datetime
 import requests
-from pyzbar.pyzbar import decode
-from PIL import Image
 
-# --- Configurações ---
+# --- Firebase URL base ---
+FIREBASE_BASE_URL = "https://fechadura-faceid-default-rtdb.europe-west1.firebasedatabase.app"
 
-# URL do Firebase Realtime Database (ajusta para o teu projeto)
-FIREBASE_ACESSOS_URL = "https://fechadura-faceid-default-rtdb.europe-west1.firebasedatabase.app"
+# --- Obter todos os dados (usuarios e acessos) do Firebase ---
+def obter_dados_firebase():
+    try:
+        resposta = requests.get(f"{FIREBASE_BASE_URL}/.json")
+        if resposta.status_code == 200:
+            return resposta.json()
+        else:
+            print("Erro ao obter dados do Firebase:", resposta.text)
+            return {"usuarios": {}, "acessos": {}}
+    except Exception as e:
+        print("Erro ao contactar Firebase:", str(e))
+        return {"usuarios": {}, "acessos": {}}
 
-# Nome do ficheiro local com a "base de dados" mockada
-FICHEIRO_DB = "mock-dados.json"
-
-# --- Função para ler QR Code a partir de imagem ---
-def ler_qr(imagem):
-    resultado = decode(Image.open(imagem))
-    if resultado:
-        return resultado[0].data.decode()  # Extrai o conteúdo do QR code
-    return None
-
-# --- Função para autenticar por PIN (inserido ou vindo de QR) ---
-def autenticar_por_pin(pin_input, db):
-    usuarios = db["usuarios"]
-    for key, dados in usuarios.items():
-        if dados["pin"] == pin_input:
-            registar_acesso(dados["nome"], "PIN", "autenticado", db)
-            print(f"\n✅ Acesso autorizado para {dados['nome']}")
-            return True
-
-    registar_acesso("Desconhecido", "PIN", "falha", db)
-    print("\n❌ PIN inválido. Acesso negado.")
-    return False
-
-# --- Função para registar acesso ---
-def registar_acesso(nome, metodo, status, db):
+# --- Gravar acesso no Firebase ---
+def registar_acesso(nome, metodo, status):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     acesso = {
         "usuario": nome,
@@ -44,49 +28,66 @@ def registar_acesso(nome, metodo, status, db):
         "status": status
     }
 
-    # Opcional: gravar localmente no mock JSON
-    acesso_id = f"acesso{len(db['acessos']) + 1}"
-    db["acessos"][acesso_id] = acesso
-
-    # Enviar para Firebase
     try:
-        resposta = requests.post(FIREBASE_ACESSOS_URL, json=acesso)
+        resposta = requests.post(f"{FIREBASE_BASE_URL}/acessos.json", json=acesso)
         if resposta.status_code == 200:
-            print("✅ Acesso também gravado no Firebase.")
+            print("Acesso gravado no Firebase.")
         else:
-            print("⚠️ Erro ao gravar no Firebase:", resposta.text)
+            print("Erro ao gravar acesso:", resposta.text)
     except Exception as e:
-        print("⚠️ Exceção ao contactar Firebase:", str(e))
+        print("Erro ao contactar Firebase:", str(e))
+
+# --- Autenticar por PIN ---
+def autenticar_por_pin(pin_input):
+    db = obter_dados_firebase()
+    usuarios = db.get("usuarios", {})
+
+    for key, dados in usuarios.items():
+        if dados.get("pin") == pin_input:
+            registar_acesso(dados["nome"], "PIN", "autenticado")
+            print(f"Acesso autorizado para {dados['nome']}")
+            return True
+
+    registar_acesso("Desconhecido", "PIN", "falha")
+    print("PIN inválido. Acesso negado.")
+    return False
+
+# --- Adicionar novo usuário ---
+def adicionar_usuario(nome, pin, face_id=""):
+    user_id = nome.lower().replace(" ", "_")  # Ex: "Diogo Pinto" -> "diogo_pinto"
+    dados = {
+        "nome": nome,
+        "pin": pin,
+        "face_id": face_id
+    }
+
+    try:
+        resposta = requests.put(f"{FIREBASE_BASE_URL}/usuarios/{user_id}.json", json=dados)
+        if resposta.status_code == 200:
+            print(f"Usuário '{nome}' adicionado com sucesso.")
+        else:
+            print("Erro ao adicionar usuário:", resposta.text)
+    except Exception as e:
+        print("Erro ao contactar Firebase:", str(e))
 
 # --- Função principal ---
 def main():
-    # Carregar dados locais
-    with open(FICHEIRO_DB, "r") as f:
-        db = json.load(f)
-
-    print("\n🛂 AUTENTICAÇÃO POR PIN OU QR CODE")
-    print("1. Inserir PIN manualmente")
-    print("2. Ler PIN via QR Code")
+    print("AUTENTICAÇÃO POR PIN")
+    print("1. Inserir PIN")
+    print("2. Adicionar novo usuário")
     escolha = input("Escolha a opção (1 ou 2): ")
 
     if escolha == "1":
-        pin = input("\nInsere o PIN: ")
+        pin = input("Insira o PIN: ")
+        autenticar_por_pin(pin)
+
     elif escolha == "2":
-        caminho = input("\nCaminho da imagem com QR code: ")
-        pin = ler_qr(caminho)
-        if not pin:
-            print("\n❌ Não foi possível ler QR code.")
-            return
-        print(f"\n📷 PIN lido do QR: {pin}")
+        nome = input("Nome do novo usuário: ")
+        pin = input("PIN do usuário: ")
+        adicionar_usuario(nome, pin)
+
     else:
-        print("\nOpção inválida.")
-        return
-
-    autenticar_por_pin(pin, db)
-
-    # Guardar base de dados atualizada (acessos) localmente
-    with open("mock-dados-atualizado.json", "w") as f:
-        json.dump(db, f, indent=2)
+        print("Opção inválida.")
 
 # --- Execução ---
 if __name__ == "__main__":
